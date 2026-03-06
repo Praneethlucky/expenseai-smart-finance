@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.d5425bf209294168b1cbd60093516d05",
+  "appName": "ExpenseAI",
+  "webDir": "dist",
+  "server": {
+    "url": "https://d5425bf2-0929-4168-b1cb-d60093516d05.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
