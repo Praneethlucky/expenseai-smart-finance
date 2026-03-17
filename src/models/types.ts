@@ -1,10 +1,17 @@
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   avatar?: string;
-  currency: string;
+  currency?: string;
   createdAt: string;
+  currentSalary: number;
+}
+
+export interface Salary {
+  CurrentSalary: string;
+  FromDate: string;
+  TillDate: string;
 }
 
 export interface Category {

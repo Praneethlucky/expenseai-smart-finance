@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { User, Transaction, Category, RecurringBill, Subscription } from '@/models/types';
+import { User, Transaction, RecurringBill, Subscription } from '@/models/types';
+import { Category } from '../models/category';
 import { transactions as mockTransactions, categories as mockCategories, recurringBills as mockBills, subscriptions as mockSubs } from '@/services/mockData';
+import { GetCategories } from "../services/categoryService";
+
 
 interface AppState {
   user: User | null;
@@ -10,8 +13,7 @@ interface AppState {
   recurringBills: RecurringBill[];
   subscriptions: Subscription[];
   currency: string;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
+  getCategories: () => void;
   addTransaction: (t: Omit<Transaction, 'id'>) => void;
   addCategory: (c: Omit<Category, 'id'>) => void;
   updateCategory: (id: string, c: Partial<Category>) => void;
@@ -25,19 +27,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [txns, setTxns] = useState<Transaction[]>(mockTransactions);
-  const [cats, setCats] = useState<Category[]>(mockCategories);
+  const [cats, setCats] = useState<Category[]>([]);
   const [bills, setBills] = useState<RecurringBill[]>(mockBills);
   const [subs] = useState<Subscription[]>(mockSubs);
-
-  const login = (email: string, _password: string) => {
-    setUser({ id: '1', name: 'Alex Johnson', email, currency: '₹', createdAt: '2025-01-01' });
-    setIsAuthenticated(true);
-    return true;
-  };
-
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
+  
+  const getCategories = async() =>
+  {
+    var cats = await GetCategories();
+    console.log(cats);
+    setCats(cats);
   };
 
   const addTransaction = (t: Omit<Transaction, 'id'>) => {
@@ -49,11 +47,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateCategory = (id: string, c: Partial<Category>) => {
-    setCats(prev => prev.map(cat => cat.id === id ? { ...cat, ...c } : cat));
   };
 
   const deleteCategory = (id: string) => {
-    setCats(prev => prev.filter(cat => cat.id !== id));
   };
 
   const addBill = (b: Omit<RecurringBill, 'id'>) => {
@@ -64,7 +60,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     <AppContext.Provider value={{
       user, isAuthenticated, transactions: txns, categories: cats,
       recurringBills: bills, subscriptions: subs, currency: '₹',
-      login, logout, addTransaction, addCategory, updateCategory, deleteCategory, addBill,
+      getCategories, addTransaction, addCategory, updateCategory, deleteCategory, addBill,
     }}>
       {children}
     </AppContext.Provider>

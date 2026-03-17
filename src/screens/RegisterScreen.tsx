@@ -1,24 +1,34 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
+import { UserRegister } from '../services/UserService';
+import { UserRegisterRequest } from "../models/user";
 
 const RegisterScreen = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [name, setName] = useState('asd');
+  const [email, setEmail] = useState('asd@gmail.com');
+  const [password, setPassword] = useState('sdfg');
+  const [confirm, setConfirm] = useState('asdf');
+  const [salary, setSalary] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useApp();
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e)  => {
     e.preventDefault();
-    if (password !== confirm) return;
-    login(email, password);
-    navigate('/');
+    try{
+      if (password !== confirm) setError("Passwords doesn't Match!!!");
+      const registerUserDTO : UserRegisterRequest = {email,fullName:name, password,currentSalary: salary}
+      await UserRegister(registerUserDTO);
+      navigate('/');
+    }
+    catch(error:any)
+    {
+      setError(error.message);
+    }
   };
 
   return (
@@ -60,6 +70,15 @@ const RegisterScreen = () => {
             <label className="text-sm font-medium text-foreground mb-1.5 block">Confirm Password</label>
             <Input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••" className="h-12 rounded-xl" />
           </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Current Salary</label>
+            <Input type="number" value={salary} onChange={e => setSalary(e.target.valueAsNumber)} className="h-12 rounded-xl" />
+          </div>
+          {error && (
+          <div className="bg-red-100 text-red-600 text-sm p-3 rounded-lg">
+            {error}
+          </div>
+        )}
           <Button type="submit" variant="gradient" size="lg" className="w-full rounded-xl">Create Account</Button>
         </form>
 

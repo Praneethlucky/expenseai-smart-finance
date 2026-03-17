@@ -1,152 +1,445 @@
-import { useState } from 'react';
-import { useApp } from '@/context/AppContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { UtensilsCrossed, Plane, ShoppingBag, Zap, Heart, Gamepad2, RefreshCw, Wallet, Check } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
-const categoryIcons = [
-  { name: 'Food', icon: UtensilsCrossed },
-  { name: 'Travel', icon: Plane },
-  { name: 'Shopping', icon: ShoppingBag },
-  { name: 'Utilities', icon: Zap },
-  { name: 'Health', icon: Heart },
-  { name: 'Entertainment', icon: Gamepad2 },
-  { name: 'Subscriptions', icon: RefreshCw },
-  { name: 'Salary', icon: Wallet },
-];
+import { GetPaymentTypes } from "../services/paymentTypesService";
+import { CreateBill } from "../services/billsService";
+import { GetCategories } from "../services/categoryService";
+import { CreateIncome } from "../services/incomeService";
+import { useNavigate, Link } from 'react-router-dom';
+import { categoryIconMap } from "../Icons/categoryIcons";
 
-const paymentMethods = ['Credit Card', 'Debit Card', 'UPI', 'Cash', 'Bank Transfer', 'Auto-debit'];
-const quickAmounts = [100, 500, 1000, 2000, 5000];
+const frequencies = ["Monthly", "Weekly", "Yearly"];
 
-const AddExpenseScreen = () => {
-  const { addTransaction } = useApp();
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('Food');
-  const [type, setType] = useState<'expense' | 'income'>('expense');
-  const [description, setDescription] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('UPI');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [notes, setNotes] = useState('');
+const AddBillScreen = () => {
 
-  const handleSubmit = () => {
-    if (!amount || !description) {
-      toast.error('Please fill amount and description');
+  const [mode, setMode] = useState<"bill" | "income">("bill");
+
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const [paymentTypes, setPaymentTypes] = useState<any[]>([]);
+  const [paymentTypeId, setPaymentTypeId] = useState<number>();
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [categoryId, setCategoryId] = useState<number>();
+
+  const [showAllCategories, setShowAllCategories] = useState(false);
+
+  const [frequency, setFrequency] = useState("Monthly");
+
+  const [startDate, setStartDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const navigate = useNavigate();
+
+  const [dayOfMonth, setDayOfMonth] = useState(1);
+
+
+  useEffect(() => {
+    loadPaymentTypes();
+    loadCategories();
+  }, []);
+
+
+
+  const loadPaymentTypes = async () => {
+    const res = await GetPaymentTypes();
+
+    if (res) {
+      setPaymentTypes(res);
+      setPaymentTypeId(res[0]?.PaymentTypeId);
+    }
+  };
+
+
+
+  const loadCategories = async () => {
+    const res = await GetCategories();
+
+    if (res) {
+      setCategories(res);
+      setCategoryId(res[0]?.categoryId);
+    }
+  };
+
+
+
+  const handleSubmit = async () => {
+
+    if (!name) {
+      toast.error("Name required");
       return;
     }
-    addTransaction({
-      amount: parseFloat(amount),
-      type,
-      category,
-      description,
-      paymentMethod,
-      date,
-      notes,
-    });
-    toast.success('Transaction added!');
-    setAmount('');
-    setDescription('');
-    setNotes('');
+
+    if (!amount) {
+      toast.error("Amount required");
+      return;
+    }
+
+
+    // =====================
+    // BILL MODE
+    // =====================
+
+    if (mode === "bill") {
+
+      if (!categoryId) {
+        toast.error("Select category");
+        return;
+      }
+
+      if (!paymentTypeId) {
+        toast.error("Select payment type");
+        return;
+      }
+
+      if (frequency === "Monthly" && !dayOfMonth) {
+        toast.error("Day required");
+        return;
+      }
+
+      const dto = {
+        name,
+        amount: parseFloat(amount),
+        categoryId,
+        paymentTypeId,
+        frequency,
+        startDate,
+        dayOfMonth,
+      };
+
+      const res = await CreateBill(dto);
+
+      if (res.success) {
+        toast.success("Bill saved");
+        setName("");
+        setAmount("");
+      } else {
+        toast.error(res.message);
+      }
+
+    }
+
+
+    // =====================
+    // INCOME MODE
+    // =====================
+
+    else {
+
+      const dto = {
+        name,
+        amount: parseFloat(amount),
+        incomeDate: startDate,
+      };
+
+      const res = await CreateIncome(dto);
+
+      if (res.success) {
+        toast.success("Income saved");
+        setName("");
+        setAmount("");
+      } else {
+        toast.error(res.message);
+      }
+
+    }
+
   };
+
+
+
+  const visibleCategories = showAllCategories
+    ? categories
+    : categories.slice(0, 8);
+
+
 
   return (
     <div className="px-4 pt-6">
-      <h1 className="text-2xl font-heading font-bold text-foreground mb-6">Add Transaction</h1>
+      <div className="flex items-center justify-between mb-6">
 
-      {/* Type Toggle */}
+          <h1 className="text-2xl font-heading font-bold">
+            Add
+          </h1>
+
+          <button
+            onClick={() => navigate("/viewBills")}
+            className="text-sm text-primary"
+          >
+            View Bills
+          </button>
+
+        </div>
+
+      {/* TOGGLE */}
+
       <div className="flex bg-muted rounded-xl p-1 mb-6">
+
         <button
-          onClick={() => setType('expense')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${type === 'expense' ? 'bg-card shadow-card text-expense' : 'text-muted-foreground'}`}
-        >Expense</button>
+          onClick={() => setMode("bill")}
+          className={`flex-1 py-2 rounded-lg text-sm font-semibold ${
+            mode === "bill"
+              ? "bg-card shadow-card"
+              : "text-muted-foreground"
+          }`}
+        >
+          Bill
+        </button>
+
         <button
-          onClick={() => setType('income')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${type === 'income' ? 'bg-card shadow-card text-income' : 'text-muted-foreground'}`}
-        >Income</button>
+          onClick={() => setMode("income")}
+          className={`flex-1 py-2 rounded-lg text-sm font-semibold ${
+            mode === "income"
+              ? "bg-card shadow-card"
+              : "text-muted-foreground"
+          }`}
+        >
+          Income
+        </button>
+
       </div>
 
-      {/* Amount */}
+
+
+      {/* NAME */}
+
       <div className="mb-5">
-        <label className="text-sm font-medium text-foreground mb-2 block">Amount (₹)</label>
+        <label className="text-sm font-medium mb-1.5 block">
+          Name
+        </label>
+
+        <Input
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className="h-11 rounded-xl"
+        />
+      </div>
+
+
+
+      {/* AMOUNT */}
+
+      <div className="mb-5">
+        <label className="text-sm font-medium mb-1.5 block">
+          Amount
+        </label>
+
         <Input
           type="number"
           value={amount}
           onChange={e => setAmount(e.target.value)}
-          placeholder="0"
-          className="h-14 rounded-xl text-2xl font-heading font-bold text-center"
+          className="h-11 rounded-xl"
         />
-        <div className="flex gap-2 mt-2">
-          {quickAmounts.map(a => (
-            <button
-              key={a}
-              onClick={() => setAmount(String(a))}
-              className="flex-1 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-medium hover:bg-accent/80 transition-colors"
-            >₹{a}</button>
-          ))}
-        </div>
       </div>
 
-      {/* Category */}
-      <div className="mb-5">
-        <label className="text-sm font-medium text-foreground mb-2 block">Category</label>
-        <div className="grid grid-cols-4 gap-2">
-          {categoryIcons.map(c => {
-            const Icon = c.icon;
-            const isActive = category === c.name;
-            return (
+
+
+      {/* BILL ONLY UI */}
+
+      {mode === "bill" && (
+
+        <>
+
+          {/* CATEGORY */}
+
+          <div className="mb-5">
+
+            <label className="text-sm font-medium mb-2 block">
+              Category
+            </label>
+
+            <div className="grid grid-cols-4 gap-2">
+
+              {visibleCategories.map(c => {
+
+                const Icon =
+                  categoryIconMap[c.icon] ||
+                  categoryIconMap["Wallet"];
+
+                const isActive =
+                  categoryId === c.categoryId;
+
+                return (
+
+                  <button
+                    key={c.categoryId}
+                    onClick={() =>
+                      setCategoryId(c.categoryId)
+                    }
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl text-xs
+                    ${
+                      isActive
+                        ? "bg-primary text-white"
+                        : "bg-card text-muted-foreground"
+                    }`}
+                  >
+
+                    <Icon size={18} />
+
+                    {c.name}
+
+                  </button>
+
+                );
+
+              })}
+
+            </div>
+
+            {categories.length > 8 && (
+
               <button
-                key={c.name}
-                onClick={() => setCategory(c.name)}
-                className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
-                  isActive ? 'bg-primary text-primary-foreground shadow-button' : 'bg-card text-muted-foreground hover:bg-accent'
-                }`}
+                onClick={() =>
+                  setShowAllCategories(!showAllCategories)
+                }
+                className="text-xs mt-2"
               >
-                <Icon size={20} />
-                <span className="text-[10px] font-medium">{c.name}</span>
+                {showAllCategories ? "Less" : "More"}
               </button>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Description */}
-      <div className="mb-5">
-        <label className="text-sm font-medium text-foreground mb-1.5 block">Description</label>
-        <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="What was this for?" className="h-11 rounded-xl" />
-      </div>
+            )}
 
-      {/* Payment Method */}
-      <div className="mb-5">
-        <label className="text-sm font-medium text-foreground mb-2 block">Payment Method</label>
-        <div className="flex flex-wrap gap-2">
-          {paymentMethods.map(p => (
-            <button
-              key={p}
-              onClick={() => setPaymentMethod(p)}
-              className={`text-xs px-3 py-2 rounded-full transition-colors ${paymentMethod === p ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
-            >{p}</button>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Date */}
-      <div className="mb-5">
-        <label className="text-sm font-medium text-foreground mb-1.5 block">Date</label>
-        <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-11 rounded-xl" />
-      </div>
 
-      {/* Notes */}
+
+          {/* PAYMENT */}
+
+          <div className="mb-5">
+
+            <label className="text-sm font-medium mb-2 block">
+              Payment Method
+            </label>
+
+            <div className="flex gap-2 flex-wrap">
+
+              {paymentTypes.map(p => (
+
+                <button
+                  key={p.paymentTypeId}
+                  onClick={() =>
+                    setPaymentTypeId(
+                      p.paymentTypeId
+                    )
+                  }
+                  className={`text-xs px-3 py-2 rounded-full
+                  ${
+                    paymentTypeId ===
+                    p.paymentTypeId
+                      ? "bg-primary text-white"
+                      : "bg-muted"
+                  }`}
+                >
+                  {p.name}
+                </button>
+
+              ))}
+
+            </div>
+
+          </div>
+
+
+
+          {/* FREQUENCY */}
+
+          <div className="mb-5">
+
+            <label className="text-sm font-medium mb-2 block">
+              Frequency
+            </label>
+
+            <div className="flex gap-2">
+
+              {frequencies.map(f => (
+
+                <button
+                  key={f}
+                  onClick={() =>
+                    setFrequency(f)
+                  }
+                  className={`text-xs px-3 py-2 rounded-full
+                  ${
+                    frequency === f
+                      ? "bg-primary text-white"
+                      : "bg-muted"
+                  }`}
+                >
+                  {f}
+                </button>
+
+              ))}
+
+            </div>
+
+          </div>
+
+
+
+          {/* DAY */}
+
+          {frequency === "Monthly" && (
+
+            <div className="mb-5">
+
+              <label className="text-sm font-medium mb-1.5 block">
+                Day of Month
+              </label>
+
+              <Input
+                type="number"
+                value={dayOfMonth}
+                onChange={e =>
+                  setDayOfMonth(
+                    Number(e.target.value)
+                  )
+                }
+              />
+
+            </div>
+
+          )}
+
+        </>
+
+      )}
+
+
+
+      {/* DATE */}
+
       <div className="mb-6">
-        <label className="text-sm font-medium text-foreground mb-1.5 block">Notes (optional)</label>
-        <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any additional notes..." className="rounded-xl" rows={2} />
+
+        <label className="text-sm font-medium mb-1.5 block">
+          Date
+        </label>
+
+        <Input
+          type="date"
+          value={startDate}
+          onChange={e =>
+            setStartDate(e.target.value)
+          }
+        />
+
       </div>
 
-      <Button onClick={handleSubmit} variant="gradient" size="lg" className="w-full rounded-xl">
-        <Check size={18} /> Add {type === 'income' ? 'Income' : 'Expense'}
+
+
+      <Button
+        onClick={handleSubmit}
+        variant="gradient"
+        size="lg"
+        className="w-full rounded-xl"
+      >
+        Save
       </Button>
+
     </div>
   );
 };
 
-export default AddExpenseScreen;
+export default AddBillScreen;

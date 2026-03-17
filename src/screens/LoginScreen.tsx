@@ -1,21 +1,32 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
+import { loginUser } from '../services/loginService';
+import { LoginRequest, LoginResponse } from "../models/user";
+import { storage } from '@/storage';
+import { useAuth } from "./AuthContext";
+
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState('alex@example.com');
-  const [password, setPassword] = useState('password');
+  const [email, setEmail] = useState('praneethlucky132@gmail.com');
+  const [password, setPassword] = useState('Lucky@132');
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useApp();
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { setUserProfile } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (login(email, password)) {
-      navigate('/');
+
+    try {
+      const request: LoginRequest = {email, password, deviceId: storage.deviceType};
+      const respone = await loginUser(request);
+      await setUserProfile();
+      navigate("/")
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -60,6 +71,11 @@ const LoginScreen = () => {
               </button>
             </div>
           </div>
+                  {error && (
+          <div className="bg-red-100 text-red-600 text-sm p-3 rounded-lg">
+            {error}
+          </div>
+        )}
           <Button type="submit" variant="gradient" size="lg" className="w-full rounded-xl">
             Log In
           </Button>

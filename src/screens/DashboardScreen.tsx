@@ -5,12 +5,19 @@ import { TrendingUp, TrendingDown, PiggyBank, Percent, Sparkles, ChevronRight } 
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { expenseBreakdown, monthlySpending, aiInsights } from '@/services/mockData';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "./AuthContext";
+import { useEffect, useState } from "react";
+
+
 
 const DashboardScreen = () => {
-  const { transactions, currency } = useApp();
   const navigate = useNavigate();
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const { user } = useAuth();
+  const { transactions, currency } = useApp();
+
+
+  const totalIncome = user.currentSalary;
   const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const savings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? Math.round((savings / totalIncome) * 100) : 0;
@@ -22,7 +29,7 @@ const DashboardScreen = () => {
       {/* Header */}
       <div className="gradient-header rounded-2xl p-5 mb-6 text-primary-foreground">
         <p className="text-sm opacity-80">Welcome back</p>
-        <h1 className="text-2xl font-heading font-bold mt-1">Alex Johnson</h1>
+        <h1 className="text-2xl font-heading font-bold mt-1">{user.fullName}</h1>
         <p className="text-sm opacity-70 mt-1">March 2026</p>
       </div>
 

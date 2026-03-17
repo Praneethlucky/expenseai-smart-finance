@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ExpenseAI</string>
+    <string name="title_activity_main">ExpenseAI</string>
+    <string name="package_name">app.lovable.d5425bf209294168b1cbd60093516d05</string>
+    <string name="custom_url_scheme">app.lovable.d5425bf209294168b1cbd60093516d05</string>
+</resources>

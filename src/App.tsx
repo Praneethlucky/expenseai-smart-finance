@@ -13,14 +13,25 @@ import BillsScreen from "@/screens/BillsScreen";
 import InsightsScreen from "@/screens/InsightsScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
 import CategoriesScreen from "@/screens/CategoriesScreen";
+import AddDebtScreen from "@/screens/AddDebtScreen";
 import NotFound from "./pages/NotFound";
+import { useAuth, AuthProvider } from "./screens/AuthContext";
+import ViewBillsScreen from "./screens/ViewBillsScreen"
+
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useApp();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+const ProtectedRoute = ({ children }) => {
+
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 };
 
 const AppRoutes = () => (
@@ -35,6 +46,8 @@ const AppRoutes = () => (
       <Route path="/insights" element={<ProtectedRoute><InsightsScreen /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><ProfileScreen /></ProtectedRoute>} />
       <Route path="/categories" element={<ProtectedRoute><CategoriesScreen /></ProtectedRoute>} />
+      <Route path="/balances" element={<ProtectedRoute><AddDebtScreen /></ProtectedRoute>} />
+      <Route path="/viewbills" element={<ProtectedRoute><ViewBillsScreen /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </AppShell>
@@ -42,15 +55,21 @@ const AppRoutes = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Sonner />
+  <TooltipProvider>
+    <Sonner />
+
+    <AuthProvider>
       <AppProvider>
+
         <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
+
       </AppProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+    </AuthProvider>
+
+  </TooltipProvider>
+</QueryClientProvider>
 );
 
 export default App;

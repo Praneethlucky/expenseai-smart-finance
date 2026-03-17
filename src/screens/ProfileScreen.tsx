@@ -1,10 +1,12 @@
 import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from "./AuthContext";
+
 import { User, Mail, DollarSign, Moon, Download, LogOut, ChevronRight, Shield } from 'lucide-react';
 
 const ProfileScreen = () => {
-  const { user, logout } = useApp();
+  const {user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -19,10 +21,10 @@ const ProfileScreen = () => {
       {/* User Card */}
       <div className="bg-card rounded-2xl p-5 shadow-card mb-6 flex items-center gap-4">
         <div className="w-14 h-14 gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-heading font-bold text-xl">
-          {user?.name?.charAt(0) || 'A'}
+          {user?.fullName?.charAt(0) || 'A'}
         </div>
         <div>
-          <p className="font-semibold text-foreground">{user?.name || 'Alex Johnson'}</p>
+          <p className="font-semibold text-foreground">{user?.fullName || 'Alex Johnson'}</p>
           <p className="text-sm text-muted-foreground">{user?.email || 'alex@example.com'}</p>
         </div>
       </div>
@@ -33,6 +35,8 @@ const ProfileScreen = () => {
           { icon: User, label: 'Edit Profile', action: () => {} },
           { icon: DollarSign, label: 'Currency', value: '₹ INR', action: () => {} },
           { icon: Shield, label: 'Manage Categories', action: () => navigate('/categories') },
+          { icon: Shield, label: 'Bills', action: () => navigate('/viewBills') },
+          { icon: Shield, label: 'Balances', action: () => navigate('/balances') },
           { icon: Moon, label: 'Dark Mode', value: 'Off', action: () => {} },
           { icon: Download, label: 'Export Data', action: () => {} },
         ].map(item => (
