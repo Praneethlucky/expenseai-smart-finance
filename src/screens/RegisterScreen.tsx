@@ -7,10 +7,10 @@ import { UserRegister } from '../services/UserService';
 import { UserRegisterRequest } from "../models/user";
 
 const RegisterScreen = () => {
-  const [name, setName] = useState('asd');
-  const [email, setEmail] = useState('asd@gmail.com');
-  const [password, setPassword] = useState('sdfg');
-  const [confirm, setConfirm] = useState('asdf');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('@gmail.com');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [salary, setSalary] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -19,15 +19,20 @@ const RegisterScreen = () => {
 
   const handleRegister = async (e)  => {
     e.preventDefault();
-    try{
-      if (password !== confirm) setError("Passwords doesn't Match!!!");
-      const registerUserDTO : UserRegisterRequest = {email,fullName:name, password,currentSalary: salary}
-      await UserRegister(registerUserDTO);
-      navigate('/');
+    if(salary<=0){
+      setError("Salary should be greater than zero")
     }
-    catch(error:any)
-    {
-      setError(error.message);
+    else{
+      try{
+        if (password !== confirm) setError("Passwords doesn't Match!!!");
+        const registerUserDTO : UserRegisterRequest = {email,fullName:name, password,currentSalary: salary}
+        await UserRegister(registerUserDTO);
+        navigate('/');
+      }
+      catch(error:any)
+      {
+        setError(error.message);
+      }
     }
   };
 

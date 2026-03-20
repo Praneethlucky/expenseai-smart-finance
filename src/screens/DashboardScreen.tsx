@@ -3,22 +3,85 @@ import StatCard from '@/components/StatCard';
 import TransactionItem from '@/components/TransactionItem';
 import { TrendingUp, TrendingDown, PiggyBank, Percent, Sparkles, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
-import { expenseBreakdown, monthlySpending, aiInsights } from '@/services/mockData';
+import { monthlySpending, aiInsights } from '@/services/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "./AuthContext";
 import { useEffect, useState } from "react";
+import {
+  GetMonthlyOccurrences
+} from "@/services/occurrenceService"
 
+import {
+  OccurrenceSummary
+} from "@/models/occurrenceTypes"
 
 
 const DashboardScreen = () => {
   const navigate = useNavigate();
+  const today = new Date()
 
+  const [year, setYear] =
+    useState(today.getFullYear())
+
+  const [month, setMonth] =
+    useState(today.getMonth() + 1)
+
+  const [data, setData] =
+    useState<OccurrenceSummary | null>(null);
+
+  
   const { user } = useAuth();
   const { transactions, currency } = useApp();
 
+  useEffect(() => {
+  load()
+}, [month, year])
 
-  const totalIncome = user.currentSalary;
-  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+async function load() {
+
+  const res =
+    await GetMonthlyOccurrences(
+      year,
+      month
+    )
+  if (res.success)
+    setData(res.data)
+}
+function getMonthName(month: number) {
+  return new Date(2024, month - 1).toLocaleString(
+    "en-US",
+    { month: "long" }
+  );
+}
+const allItems = [
+  ...(data?.pending ?? []),
+  ...(data?.paid ?? [])
+];
+const expenseBreakdown = Object.values(
+  allItems.reduce((acc, item) => {
+    const cat = item.categoryName || "Other";
+    const color = item.categoryColor
+    if (!acc[cat]) {
+      acc[cat] = {
+        name: cat,
+        value: 0,
+        color:
+          color ??
+          "hsl(0,0%,60%)",
+      };
+    }
+
+    acc[cat].value += item.amount;
+
+    return acc;
+  }, {} as Record<string,     { name: string; value: number; color: string }
+>)
+);
+const totalIncome =
+  user?.currentSalary ?? 0
+
+const totalExpenses =
+  data?.totalBills ?? 0
   const savings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? Math.round((savings / totalIncome) * 100) : 0;
 
@@ -30,7 +93,7 @@ const DashboardScreen = () => {
       <div className="gradient-header rounded-2xl p-5 mb-6 text-primary-foreground">
         <p className="text-sm opacity-80">Welcome back</p>
         <h1 className="text-2xl font-heading font-bold mt-1">{user.fullName}</h1>
-        <p className="text-sm opacity-70 mt-1">March 2026</p>
+        <p className="text-sm opacity-70 mt-1">{getMonthName(month)} {year}</p>
       </div>
 
       {/* Stat Cards */}

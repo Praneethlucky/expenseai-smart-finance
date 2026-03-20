@@ -265,7 +265,7 @@ const CategoriesScreen = () => {
               : "bg-muted"
           }`}
         >
-          My
+          My Categories
         </button>
 
 

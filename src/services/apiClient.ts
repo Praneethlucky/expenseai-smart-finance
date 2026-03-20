@@ -1,7 +1,7 @@
 import { ApiError } from "../models/apiTypes"
 import { storage } from "@/storage";
 
-const API_BASE = "http://expensetrack.runasp.net/api"
+const API_BASE = "https://expensetrack.runasp.net/api"
 
 export async function apiFetch<T>(
   endpoint: string,

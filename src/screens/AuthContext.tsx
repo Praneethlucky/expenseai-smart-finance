@@ -3,6 +3,16 @@ import { logoutUser } from "@/services/loginService";
 import {  UserProfile } from "@/services/UserService";
 import { storage } from "@/storage";
 import { User } from "../models/user";
+import {
+  GetCategories
+} from "../services/categoryService";
+
+import { Category, CreateCategoryDto } from "../models/category";
+
+import { getCategoryIcon } from "../Icons/categoryIcons";
+import IconPicker from "@/Icons/IconPicker";
+
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

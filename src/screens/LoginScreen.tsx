@@ -10,8 +10,8 @@ import { useAuth } from "./AuthContext";
 
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState('praneethlucky132@gmail.com');
-  const [password, setPassword] = useState('Lucky@132');
+  const [email, setEmail] = useState('@gmail.com');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();

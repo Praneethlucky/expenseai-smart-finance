@@ -12,6 +12,7 @@ export interface CreateBillRequestDto {
   dayOfMonth?: number;
   dayOfWeek?: number;
   monthOfYear?: number;
+  
 }
 
 export interface Bill {

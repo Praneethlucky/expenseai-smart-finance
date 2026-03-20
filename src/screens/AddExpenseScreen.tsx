@@ -10,7 +10,7 @@ import { CreateIncome } from "../services/incomeService";
 import { useNavigate, Link } from 'react-router-dom';
 import { categoryIconMap } from "../Icons/categoryIcons";
 
-const frequencies = ["Monthly", "Weekly", "Yearly"];
+const frequencies = ["Weekly", "Monthly", "Quarterly", "Yearly"];
 
 const AddBillScreen = () => {
 

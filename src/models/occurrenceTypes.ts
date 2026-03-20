@@ -4,7 +4,7 @@ export type Occurrence = {
   amount: number
   dueDate: string
   isPaid: boolean
-
+  categoryName: string
   categoryIcon?: string
   categoryColor?: string
 }

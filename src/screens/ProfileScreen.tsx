@@ -1,4 +1,3 @@
-import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from "./AuthContext";
